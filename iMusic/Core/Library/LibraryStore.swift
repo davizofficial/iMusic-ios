@@ -69,6 +69,7 @@ extension LibraryData {
     }
 }
 
+@MainActor
 final class LibraryStore: ObservableObject {
     static let shared = LibraryStore()
 

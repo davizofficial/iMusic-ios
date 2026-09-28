@@ -13,9 +13,11 @@ final class NetworkMonitor: ObservableObject {
     private let monitor = NWPathMonitor()
 
     private init() {
-        monitor.pathUpdateHandler = { path in
+        monitor.pathUpdateHandler = { [weak self] path in
             let online = path.status == .satisfied
-            Task { @MainActor in NetworkMonitor.shared.isOnline = online }
+            Task { @MainActor [weak self] in
+                self?.isOnline = online
+            }
         }
         monitor.start(queue: DispatchQueue(label: "app.imusic.network"))
     }

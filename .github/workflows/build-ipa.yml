@@ -34,16 +34,38 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             build
 
-      - name: Package unsigned IPA
+      - name: Verify app bundle and Info.plist
+        run: |
+          APP_PATH="build/Build/Products/Release-iphoneos/iMusic.app"
+          echo "=== Info.plist dump ==="
+          plutil -p "$APP_PATH/Info.plist"
+          EXEC=$(plutil -extract CFBundleExecutable raw "$APP_PATH/Info.plist" || true)
+          echo "CFBundleExecutable is: $EXEC"
+          if [ -z "$EXEC" ]; then
+            echo "ERROR: CFBundleExecutable is missing from Info.plist!"
+            exit 1
+          fi
+          if [ ! -f "$APP_PATH/$EXEC" ]; then
+            echo "ERROR: Mach-O binary $APP_PATH/$EXEC does not exist!"
+            exit 1
+          fi
+          echo "Mach-O binary info:"
+          file "$APP_PATH/$EXEC"
+
+      - name: Package IPA
         run: |
           mkdir -p Payload
           cp -R build/Build/Products/Release-iphoneos/iMusic.app Payload/
-          zip -qry iMusic-unsigned.ipa Payload
+          codesign --force --deep --sign - Payload/iMusic.app
+          zip -qry iMusic.ipa Payload
+          cp iMusic.ipa iMusic-unsigned.ipa
           rm -rf Payload
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: iMusic-ipa
-          path: iMusic-unsigned.ipa
+          path: |
+            iMusic.ipa
+            iMusic-unsigned.ipa
           if-no-files-found: error
