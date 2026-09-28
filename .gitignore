@@ -1,0 +1,5 @@
+iMusic.xcodeproj/
+build/
+DerivedData/
+*.ipa
+.DS_Store
