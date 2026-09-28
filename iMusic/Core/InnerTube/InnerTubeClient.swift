@@ -75,7 +75,7 @@ final class InnerTubeClient {
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
 
         var key: String?
-        if let ttl {
+        if ttl != nil {
             let k = cacheKey(endpoint: endpoint, client: client, query: query, payload: payload)
             key = k
             if let hit = InnerTubeCache.shared.get(k, allowExpired: false) { return hit }

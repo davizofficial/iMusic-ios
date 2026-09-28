@@ -3,7 +3,7 @@ import UIKit
 
 struct SearchView: View {
     @State private var query = ""
-    @State private var sections: [Section] = []
+    @State private var sections: [MediaSection] = []
     @State private var suggestions: [String] = []
     @State private var state: LoadState = .loaded
     @State private var filter = "all"

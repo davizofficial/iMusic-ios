@@ -50,7 +50,7 @@ struct MediaItem: Codable, Identifiable, Hashable {
     }
 }
 
-struct Section: Identifiable, Codable {
+struct MediaSection: Identifiable, Codable {
     var title: String
     var items: [MediaItem]
     var list: Bool?
@@ -69,7 +69,7 @@ struct PageHeader: Codable {
 struct BrowsePage {
     var header: PageHeader?
     var tracks: [MediaItem]
-    var sections: [Section]
+    var sections: [MediaSection]
     var playlistId: String?
 }
 

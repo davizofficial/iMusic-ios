@@ -162,8 +162,8 @@ enum InnerTubeParser {
         return item
     }
 
-    static func parseSections(_ contents: [Any]?) -> [Section] {
-        var sections: [Section] = []
+    static func parseSections(_ contents: [Any]?) -> [MediaSection] {
+        var sections: [MediaSection] = []
         for s in contents ?? [] {
             guard let sd = s as? [String: Any] else { continue }
             if let car = sd["musicCarouselShelfRenderer"] as? [String: Any] {
@@ -174,7 +174,7 @@ enum InnerTubeParser {
                     if let lr = cd["musicResponsiveListItemRenderer"] as? [String: Any] { return parseListItem(lr) }
                     return nil
                 }
-                if !items.isEmpty { sections.append(Section(title: title, items: items, list: nil)) }
+                if !items.isEmpty { sections.append(MediaSection(title: title, items: items, list: nil)) }
             } else if let shelf = sd["musicShelfRenderer"] as? [String: Any] {
                 let items = JSON.array(shelf["contents"]).compactMap { c -> MediaItem? in
                     guard let cd = c as? [String: Any],
@@ -182,7 +182,7 @@ enum InnerTubeParser {
                     return parseListItem(lr)
                 }
                 if !items.isEmpty {
-                    sections.append(Section(title: JSON.runsText(shelf["title"]), items: items, list: true))
+                    sections.append(MediaSection(title: JSON.runsText(shelf["title"]), items: items, list: true))
                 }
             }
         }

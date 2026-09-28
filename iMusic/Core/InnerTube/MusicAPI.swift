@@ -12,7 +12,7 @@ enum MusicAPI {
 
     // MARK: Home
 
-    static func home() async throws -> [Section] {
+    static func home() async throws -> [MediaSection] {
         let d = try await InnerTubeClient.shared.post("browse", body: ["browseId": "FEmusic_home"], ttl: 600)
         guard let sl = JSON.first(d, "sectionListRenderer") as? [String: Any] else { return [] }
         var sections = InnerTubeParser.parseSections(sl["contents"] as? [Any])
@@ -35,7 +35,7 @@ enum MusicAPI {
 
     // MARK: Charts
 
-    static func charts() async throws -> [Section] {
+    static func charts() async throws -> [MediaSection] {
         let d = try await InnerTubeClient.shared.post("browse", body: ["browseId": "FEmusic_charts"], ttl: 1800)
         guard let sl = JSON.first(d, "sectionListRenderer") as? [String: Any] else { return [] }
         return InnerTubeParser.parseSections(sl["contents"] as? [Any])
@@ -64,12 +64,12 @@ enum MusicAPI {
 
     // MARK: Search
 
-    static func search(query: String, filter: String?) async throws -> [Section] {
+    static func search(query: String, filter: String?) async throws -> [MediaSection] {
         var body: [String: Any] = ["query": query]
         if let f = filter, let p = searchParams[f] { body["params"] = p }
         let d = try await InnerTubeClient.shared.post("search", body: body)
 
-        var sections: [Section] = []
+        var sections: [MediaSection] = []
         for shelfAny in JSON.findAll(d, key: "musicShelfRenderer") {
             guard let shelf = shelfAny as? [String: Any] else { continue }
             let items = JSON.array(shelf["contents"]).compactMap { c -> MediaItem? in
@@ -78,7 +78,7 @@ enum MusicAPI {
                 return InnerTubeParser.parseListItem(lr)
             }
             if !items.isEmpty {
-                sections.append(Section(title: JSON.runsText(shelf["title"]), items: items, list: true))
+                sections.append(MediaSection(title: JSON.runsText(shelf["title"]), items: items, list: true))
             }
         }
 
@@ -96,7 +96,7 @@ enum MusicAPI {
                     if !seen.contains(key) { seen.insert(key); flat.append(it) }
                 }
             }
-            if !flat.isEmpty { sections.append(Section(title: "Results", items: flat, list: true)) }
+            if !flat.isEmpty { sections.append(MediaSection(title: "Results", items: flat, list: true)) }
         }
 
         if let top = JSON.first(d, "musicCardShelfRenderer") as? [String: Any] {
@@ -110,7 +110,7 @@ enum MusicAPI {
                 browseId: nav.browseId,
                 browseType: nav.browseType
             )
-            sections.insert(Section(title: "Top result", items: [item], list: nil), at: 0)
+            sections.insert(MediaSection(title: "Top result", items: [item], list: nil), at: 0)
         }
         return sections
     }
@@ -167,9 +167,9 @@ enum MusicAPI {
 
     // MARK: Related
 
-    static func related(browseId: String) async throws -> [Section] {
+    static func related(browseId: String) async throws -> [MediaSection] {
         let d = try await InnerTubeClient.shared.post("browse", body: ["browseId": browseId], ttl: 1800)
-        var sections: [Section] = []
+        var sections: [MediaSection] = []
         if let sl = JSON.first(d, "sectionListRenderer") as? [String: Any] {
             sections = InnerTubeParser.parseSections(sl["contents"] as? [Any])
         }
@@ -182,7 +182,7 @@ enum MusicAPI {
                 return nil
             }
             if !items.isEmpty {
-                sections.append(Section(title: JSON.runsText(JSON.first(g["header"], "title")), items: items, list: nil))
+                sections.append(MediaSection(title: JSON.runsText(JSON.first(g["header"], "title")), items: items, list: nil))
             }
         }
         return sections.filter { !$0.items.isEmpty }
@@ -238,7 +238,7 @@ enum MusicAPI {
             }
         }
 
-        var sections: [Section] = []
+        var sections: [MediaSection] = []
         if let sl = JSON.first(d, "sectionListRenderer") as? [String: Any] {
             sections = InnerTubeParser.parseSections(sl["contents"] as? [Any])
                 .filter { !($0.list == true && !tracks.isEmpty) }
@@ -255,7 +255,7 @@ enum MusicAPI {
                 return InnerTubeParser.parseTwoRow(tr)
             }
             if !items.isEmpty {
-                sections.append(Section(title: JSON.runsText(JSON.first(g["header"], "title")), items: items, list: nil))
+                sections.append(MediaSection(title: JSON.runsText(JSON.first(g["header"], "title")), items: items, list: nil))
             }
         }
 

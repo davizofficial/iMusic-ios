@@ -15,7 +15,7 @@ final class PlayerModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
     @Published private(set) var lyrics: Lyrics = .empty
-    @Published private(set) var relatedSections: [Section] = []
+    @Published private(set) var relatedSections: [MediaSection] = []
     @Published private(set) var sleepMinutes = 0
 
     private let engine = PlayerEngine()

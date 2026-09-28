@@ -250,7 +250,7 @@ struct MediaCard: View {
 // MARK: - Shelf
 
 struct ShelfView: View {
-    let section: Section
+    let section: MediaSection
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {

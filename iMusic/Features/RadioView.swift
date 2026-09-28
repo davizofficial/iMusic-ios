@@ -7,7 +7,7 @@ struct RadioView: View {
     @EnvironmentObject private var player: PlayerModel
     @EnvironmentObject private var library: LibraryStore
     @State private var moods: [MoodCategory] = []
-    @State private var charts: [Section] = []
+    @State private var charts: [MediaSection] = []
     @State private var state: LoadState = .loading
 
     private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]

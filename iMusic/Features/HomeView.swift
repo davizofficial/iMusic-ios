@@ -3,7 +3,7 @@ import SwiftUI
 struct HomeView: View {
     @EnvironmentObject private var player: PlayerModel
     @EnvironmentObject private var library: LibraryStore
-    @State private var sections: [Section] = []
+    @State private var sections: [MediaSection] = []
     @State private var state: LoadState = .loading
 
     var body: some View {
