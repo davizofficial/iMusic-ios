@@ -50,5 +50,8 @@ struct RootView: View {
         .fullScreenCover(isPresented: $showNowPlaying) {
             NowPlayingView()
         }
+        .onAppear {
+            player.setupRemoteCommandsIfNeeded()
+        }
     }
 }

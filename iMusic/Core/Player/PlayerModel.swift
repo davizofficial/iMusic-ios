@@ -48,6 +48,16 @@ final class PlayerModel: ObservableObject {
         engine.onPlayingChanged = { [weak self] playing in
             Task { @MainActor in self?.isPlaying = playing }
         }
+        observeInterruptions()
+        restoreState()
+    }
+
+    private var commandsInstalled = false
+
+    func setupRemoteCommandsIfNeeded() {
+        guard !commandsInstalled else { return }
+        commandsInstalled = true
+        AudioSessionManager.activate()
         NowPlayingCenter.installCommands(
             play: { [weak self] in Task { @MainActor in self?.resume() } },
             pause: { [weak self] in Task { @MainActor in self?.pause() } },
@@ -56,8 +66,6 @@ final class PlayerModel: ObservableObject {
             previous: { [weak self] in Task { @MainActor in self?.previous() } },
             seek: { [weak self] position in Task { @MainActor in self?.seek(position) } }
         )
-        observeInterruptions()
-        restoreState()
     }
 
     // MARK: Persistence

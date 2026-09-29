@@ -57,10 +57,9 @@ jobs:
           mkdir -p Payload
           cp -R build/Build/Products/Release-iphoneos/iMusic.app Payload/
           
-          # Clean ad-hoc code signature without conflicting entitlements.
-          # This allows TrollStore to apply its valid fallback entitlements on install,
-          # and enables AltStore / SideStore / Sideloadly to re-sign cleanly without conflicts.
-          codesign --force --deep --sign - Payload/iMusic.app
+          # Remove any CI _CodeSignature so TrollStore / AltStore / SideStore
+          # can sign the binary cleanly with their respective certificates without conflicts.
+          rm -rf Payload/iMusic.app/_CodeSignature
           
           # Package ONLY 1 single iMusic.ipa
           zip -qry iMusic.ipa Payload

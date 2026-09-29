@@ -44,9 +44,6 @@ targets:
         LSRequiresIPhoneOS: true
         UIBackgroundModes: [audio]
         UILaunchScreen: {}
-        UIApplicationSceneManifest:
-          UIApplicationSupportsMultipleScenes: false
-          UISceneConfigurations: {}
         ITSAppUsesNonExemptEncryption: false
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
