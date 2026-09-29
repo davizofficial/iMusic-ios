@@ -64,7 +64,9 @@ final class PlayerEngine {
     }
 
     func setRate(_ rate: Float) {
-        player.defaultRate = rate
+        if #available(iOS 16.0, *) {
+            player.defaultRate = rate
+        }
         if player.timeControlStatus == .playing { player.rate = rate }
     }
 

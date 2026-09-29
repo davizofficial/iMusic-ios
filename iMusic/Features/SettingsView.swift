@@ -83,7 +83,12 @@ struct SettingsView: View {
             }
 
             Section("Tentang") {
-                LabeledContent("Versi", value: appVersion)
+                HStack {
+                    Text("Versi")
+                    Spacer()
+                    Text(appVersion)
+                        .foregroundStyle(.secondary)
+                }
                 Text("iMusic — pemutar musik untuk penggunaan pribadi. Tidak berafiliasi dengan YouTube, Google, atau Apple.")
                     .font(.caption)
                     .foregroundStyle(.secondary)

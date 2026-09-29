@@ -43,8 +43,8 @@ struct LibraryView: View {
                         Image(systemName: "gearshape")
                     }
                 }
-                if tab == 0 {
-                    ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    if tab == 0 {
                         Button {
                             newPlaylistName = ""
                             showNewPlaylist = true
@@ -206,8 +206,8 @@ struct LocalPlaylistView: View {
         .navigationTitle(playlist?.name ?? "Playlist")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if let playlist, !playlist.tracks.isEmpty {
-                ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                if let playlist, !playlist.tracks.isEmpty {
                     Button {
                         player.play(playlist.tracks[0], queue: playlist.tracks)
                     } label: {
