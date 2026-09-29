@@ -1,11 +1,19 @@
 import SwiftUI
+import UIKit
+
+final class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool {
+        return true
+    }
+}
 
 @main
-@MainActor
 struct iMusicApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var player = PlayerModel()
-    @StateObject private var library = LibraryStore.shared
-    @StateObject private var downloads = DownloadManager.shared
 
     init() {
         if let hl = UserDefaults.standard.string(forKey: "region_hl") { AppConfig.hl = hl }
@@ -16,8 +24,8 @@ struct iMusicApp: App {
         WindowGroup {
             RootView()
                 .environmentObject(player)
-                .environmentObject(library)
-                .environmentObject(downloads)
+                .environmentObject(LibraryStore.shared)
+                .environmentObject(DownloadManager.shared)
                 .tint(Theme.accent)
         }
     }
