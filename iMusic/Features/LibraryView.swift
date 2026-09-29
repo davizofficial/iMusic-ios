@@ -475,7 +475,7 @@ struct StatsView: View {
                                         Text(stat.title)
                                             .font(.subheadline.weight(.medium))
                                             .lineLimit(1)
-                                        Text(stat.artist)
+                                        Text(stat.artist ?? "")
                                             .font(.caption)
                                             .foregroundStyle(.secondary)
                                             .lineLimit(1)
