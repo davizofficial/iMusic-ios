@@ -178,6 +178,16 @@ final class LibraryStore: ObservableObject {
         save()
     }
 
+    func clearHistory() {
+        history.removeAll()
+        save()
+    }
+
+    func removeFromHistory(videoId: String) {
+        history.removeAll { $0.videoId == videoId }
+        save()
+    }
+
     func addListenTime(_ videoId: String, seconds: Double) {
         guard var entry = stats[videoId] else { return }
         entry.secs += seconds

@@ -14,23 +14,53 @@ struct NowPlayingView: View {
     @State private var showLyrics = false
     @State private var showRelated = false
     @State private var bgColor: Color = .black
+    @State private var dragOffsetY: CGFloat = 0
 
     var body: some View {
-        ZStack {
-            background
-            VStack(spacing: 0) {
-                topBar
-                Spacer(minLength: 8)
-                if showLyrics { lyricsView } else { artwork }
-                Spacer(minLength: 8)
-                metadata
-                scrubber
-                controls
-                volumeBar
-                bottomBar
+        GeometryReader { geo in
+            ZStack {
+                background
+                VStack(spacing: 0) {
+                    topBar
+                    Spacer(minLength: 4)
+                    if showLyrics {
+                        lyricsView
+                    } else {
+                        artwork(size: min(geo.size.width - 48, max(160, geo.size.height * 0.36)))
+                    }
+                    Spacer(minLength: 4)
+                    metadata
+                    scrubber
+                    controls
+                    volumeBar
+                    bottomBar
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 12)
             }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 16)
+            .offset(y: max(0, dragOffsetY))
+            .gesture(
+                DragGesture(minimumDistance: 12)
+                    .onChanged { value in
+                        if value.translation.height > 0 && abs(value.translation.height) >= abs(value.translation.width) {
+                            dragOffsetY = value.translation.height
+                        }
+                    }
+                    .onEnded { value in
+                        if (value.translation.height > 80 || value.predictedEndTranslation.height > 120) && abs(value.translation.height) >= abs(value.translation.width) {
+                            withAnimation(.easeOut(duration: 0.2)) {
+                                dragOffsetY = geo.size.height
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                dismiss()
+                            }
+                        } else {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                dragOffsetY = 0
+                            }
+                        }
+                    }
+            )
         }
         .sheet(isPresented: $showQueue) { QueueSheet() }
         .sheet(isPresented: $showRelated) { RelatedSheet() }
@@ -65,7 +95,7 @@ struct NowPlayingView: View {
     private var topBar: some View {
         VStack(spacing: 8) {
             Capsule()
-                .fill(Color.white.opacity(0.3))
+                .fill(Color.white.opacity(0.35))
                 .frame(width: 36, height: 5)
                 .padding(.top, 4)
 
@@ -74,6 +104,7 @@ struct NowPlayingView: View {
                     Image(systemName: "chevron.down")
                         .font(.title3.weight(.semibold))
                         .foregroundStyle(.white.opacity(0.8))
+                        .frame(width: 36, height: 36)
                 }
                 .accessibilityLabel("Tutup")
 
@@ -103,6 +134,7 @@ struct NowPlayingView: View {
                     Image(systemName: "ellipsis.circle.fill")
                         .font(.title3)
                         .foregroundStyle(.white.opacity(0.8))
+                        .frame(width: 36, height: 36)
                 }
                 .accessibilityLabel("Opsi lainnya")
             }
@@ -110,11 +142,10 @@ struct NowPlayingView: View {
         .padding(.top, 4)
     }
 
-    private var artwork: some View {
+    private func artwork(size: CGFloat) -> some View {
         ArtworkView(url: player.current?.thumbnail, cornerRadius: 12)
-            .frame(maxWidth: 340)
-            .aspectRatio(1, contentMode: .fit)
-            .shadow(radius: 24, y: 12)
+            .frame(width: size, height: size)
+            .shadow(color: .black.opacity(0.4), radius: 20, y: 10)
             .scaleEffect(player.isPlaying ? 1 : 0.94)
             .animation(reduceMotion ? nil : .spring(response: 0.4, dampingFraction: 0.8),
                        value: player.isPlaying)
@@ -201,6 +232,7 @@ struct NowPlayingView: View {
                     Image(systemName: library.isFavorite(song.videoId) ? "heart.fill" : "heart")
                         .font(.title3)
                         .foregroundStyle(library.isFavorite(song.videoId) ? Theme.accent : .white.opacity(0.7))
+                        .frame(width: 40, height: 40)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(library.isFavorite(song.videoId) ? "Hapus dari Favorit" : "Tambah ke Favorit")
@@ -249,44 +281,58 @@ struct NowPlayingView: View {
     }
 
     private var controls: some View {
-        HStack(spacing: 36) {
+        HStack {
             Button { player.toggleShuffle() } label: {
                 Image(systemName: "shuffle")
                     .font(.title3)
-                    .foregroundStyle(player.shuffle ? Theme.accent : .white.opacity(0.7))
+                    .foregroundStyle(player.shuffle ? Theme.accent : .white.opacity(0.6))
+                    .frame(width: 40, height: 40)
             }
             .accessibilityLabel("Acak")
             .accessibilityValue(player.shuffle ? "Aktif" : "Nonaktif")
 
+            Spacer()
+
             Button { player.previous() } label: {
-                Image(systemName: "backward.fill").font(.title)
+                Image(systemName: "backward.fill")
+                    .font(.title2)
+                    .frame(width: 44, height: 44)
             }
             .accessibilityLabel("Sebelumnya")
 
+            Spacer()
+
             Button { player.toggle() } label: {
                 Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 34))
-                    .frame(width: playButtonSize, height: playButtonSize)
-                    .background(Color.white.opacity(0.12))
+                    .font(.system(size: 32))
+                    .frame(width: 64, height: 64)
+                    .background(Color.white.opacity(0.15))
                     .clipShape(Circle())
             }
             .accessibilityLabel(player.isPlaying ? "Jeda" : "Putar")
 
+            Spacer()
+
             Button { player.next(auto: false) } label: {
-                Image(systemName: "forward.fill").font(.title)
+                Image(systemName: "forward.fill")
+                    .font(.title2)
+                    .frame(width: 44, height: 44)
             }
             .accessibilityLabel("Berikutnya")
+
+            Spacer()
 
             Button { player.cycleRepeat() } label: {
                 Image(systemName: player.repeatMode == .one ? "repeat.1" : "repeat")
                     .font(.title3)
-                    .foregroundStyle(player.repeatMode == .off ? .white.opacity(0.7) : Theme.accent)
+                    .foregroundStyle(player.repeatMode == .off ? .white.opacity(0.6) : Theme.accent)
+                    .frame(width: 40, height: 40)
             }
             .accessibilityLabel("Ulangi")
             .accessibilityValue(repeatLabel)
         }
         .foregroundStyle(.white)
-        .padding(.top, 14)
+        .padding(.top, 8)
     }
 
     private var volumeBar: some View {

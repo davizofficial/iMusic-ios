@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import WebKit
 
 struct RootView: View {
     @EnvironmentObject private var player: PlayerModel
@@ -8,23 +9,28 @@ struct RootView: View {
     @State private var selection = 0
     @State private var showNowPlaying = false
 
-    var body: some View {
-        TabView(selection: $selection) {
-            HomeView()
-                .tabItem { Label("Home", systemImage: "house.fill") }
-                .tag(0)
-            BrowseView()
-                .tabItem { Label("Jelajahi", systemImage: "square.grid.2x2.fill") }
-                .tag(1)
-            RadioView()
-                .tabItem { Label("Radio", systemImage: "dot.radiowaves.left.and.right") }
-                .tag(2)
-            LibraryView()
-                .tabItem { Label("Library", systemImage: "square.stack.fill") }
-                .tag(3)
-            SearchView()
-                .tabItem { Label("Cari", systemImage: "magnifyingglass") }
-                .tag(4)
+        ZStack {
+            TabView(selection: $selection) {
+                HomeView()
+                    .tabItem { Label("Home", systemImage: "house.fill") }
+                    .tag(0)
+                BrowseView()
+                    .tabItem { Label("Jelajahi", systemImage: "square.grid.2x2.fill") }
+                    .tag(1)
+                RadioView()
+                    .tabItem { Label("Radio", systemImage: "dot.radiowaves.left.and.right") }
+                    .tag(2)
+                LibraryView()
+                    .tabItem { Label("Library", systemImage: "square.stack.fill") }
+                    .tag(3)
+                SearchView()
+                    .tabItem { Label("Cari", systemImage: "magnifyingglass") }
+                    .tag(4)
+            }
+            HiddenWebView()
+                .frame(width: 1, height: 1)
+                .opacity(0.01)
+                .allowsHitTesting(false)
         }
         .overlay(alignment: .bottom) {
             if player.current != nil, !showNowPlaying {
@@ -60,4 +66,12 @@ struct RootView: View {
             player.setupRemoteCommandsIfNeeded()
         }
     }
+}
+
+struct HiddenWebView: UIViewRepresentable {
+    func makeUIView(context: Context) -> WKWebView {
+        YouTubeAudioBridge.shared.webView
+    }
+
+    func updateUIView(_ uiView: WKWebView, context: Context) {}
 }

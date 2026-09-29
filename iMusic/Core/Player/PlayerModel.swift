@@ -303,38 +303,26 @@ final class PlayerModel: ObservableObject {
             if let local = DownloadManager.shared.localURL(for: song.videoId) {
                 guard token == loadToken else { return }
                 isLoading = false
-                startPlayback(url: local, seekTo: seekTarget)
+                isLoaded = true
+                engine.loadLocal(url: local, autoplay: true)
+                engine.setRate(speed)
+                if seekTarget > 0 { engine.seek(seekTarget) }
                 if buildRadio { Task { await self.fetchRadio(for: song, token: token) } }
                 Task { await self.loadLyrics(for: song, token: token) }
                 return
             }
-            do {
-                let stream = try await StreamResolver.resolve(videoId: song.videoId)
-                guard token == loadToken else { return }
-                isLoading = false
-                startPlayback(url: stream.url, seekTo: seekTarget)
-                if buildRadio { Task { await self.fetchRadio(for: song, token: token) } }
-                Task { await self.loadLyrics(for: song, token: token) }
-                Task { await self.loadSponsor(for: song.videoId, token: token) }
-            } catch {
-                guard token == loadToken else { return }
-                isLoading = false
-                let appError = error.asAppError
-                if appError == .cancelled { return }
-                errorMessage = appError.errorDescription
-                if !queue.isEmpty { next(auto: true) }
-            }
-        }
-    }
 
-    private func startPlayback(url: URL, seekTo: Double) {
-        engine.load(url: url, autoplay: true)
-        engine.setRate(speed)
-        if seekTo > 0 {
-            engine.seek(seekTo)
-            currentTime = seekTo
+            // Stream directly using the official YouTube Player bridge
+            guard token == loadToken else { return }
+            isLoading = false
+            isLoaded = true
+            engine.loadYouTube(videoId: song.videoId, autoplay: true)
+            engine.setRate(speed)
+            if seekTarget > 0 { engine.seek(seekTarget) }
+            if buildRadio { Task { await self.fetchRadio(for: song, token: token) } }
+            Task { await self.loadLyrics(for: song, token: token) }
+            Task { await self.loadSponsor(for: song.videoId, token: token) }
         }
-        isLoaded = true
     }
 
     private func fetchRadio(for song: Song, token: Int) async {

@@ -32,6 +32,11 @@ struct SettingsView: View {
     @State private var backupDoc: BackupDocument?
     @State private var showImportLink = false
     @State private var message: String?
+    @State private var isTestingConnection = false
+    @State private var directApiResult: String?
+    @State private var youtubeBridgeResult: String?
+    @State private var proxyApiResult: String?
+    @State private var customProxyUrl: String = UserDefaults.standard.string(forKey: "custom_proxy_url") ?? "https://richmusic.vercel.app"
 
     private let regions: [RegionOption] = [
         RegionOption(id: "id-ID", label: "Indonesia"),
@@ -57,6 +62,67 @@ struct SettingsView: View {
                     get: { player.sponsorBlockOn },
                     set: { player.setSponsorBlock($0) }
                 ))
+            }
+
+            Section("Uji Koneksi (Proxy & API YT Music)") {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("URL Proxy / Vercel")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    TextField("https://richmusic.vercel.app", text: $customProxyUrl)
+                        .textInputAutocapitalization(.never)
+                        .disableAutocorrection(true)
+                        .keyboardType(.URL)
+                        .onChange(of: customProxyUrl) { newVal in
+                            UserDefaults.standard.set(newVal, forKey: "custom_proxy_url")
+                        }
+                }
+
+                Button {
+                    Task { await testConnections() }
+                } label: {
+                    HStack {
+                        if isTestingConnection {
+                            ProgressView()
+                                .padding(.trailing, 4)
+                        }
+                        Label(isTestingConnection ? "Sedang Menguji..." : "Uji Koneksi Sekarang", systemImage: "network")
+                    }
+                }
+                .disabled(isTestingConnection)
+
+                if let res = directApiResult {
+                    HStack {
+                        Text("InnerTube Direct")
+                            .font(.caption)
+                        Spacer()
+                        Text(res)
+                            .font(.caption.monospacedDigit().weight(.semibold))
+                            .foregroundStyle(res.contains("✅") ? .green : .red)
+                    }
+                }
+
+                if let res = youtubeBridgeResult {
+                    HStack {
+                        Text("Audio Player Engine")
+                            .font(.caption)
+                        Spacer()
+                        Text(res)
+                            .font(.caption.monospacedDigit().weight(.semibold))
+                            .foregroundStyle(res.contains("✅") ? .green : .red)
+                    }
+                }
+
+                if let res = proxyApiResult {
+                    HStack {
+                        Text("Server Proxy")
+                            .font(.caption)
+                        Spacer()
+                        Text(res)
+                            .font(.caption.monospacedDigit().weight(.semibold))
+                            .foregroundStyle(res.contains("✅") ? .green : .red)
+                    }
+                }
             }
 
             Section("Wilayah") {
@@ -165,6 +231,71 @@ struct SettingsView: View {
         case .failure(let error):
             message = "Gagal: \(error.localizedDescription)"
         }
+    }
+
+    private func testConnections() async {
+        isTestingConnection = true
+        directApiResult = "Menguji..."
+        youtubeBridgeResult = "Menguji..."
+        proxyApiResult = "Menguji..."
+
+        // 1. YouTube Music Direct InnerTube ping
+        do {
+            let start = CFAbsoluteTimeGetCurrent()
+            guard let url = URL(string: "https://music.youtube.com/generate_204") else { return }
+            var req = URLRequest(url: url)
+            req.timeoutInterval = 8
+            let (_, resp) = try await URLSession.shared.data(for: req)
+            let ms = Int((CFAbsoluteTimeGetCurrent() - start) * 1000)
+            if let http = resp as? HTTPURLResponse, (200...299).contains(http.statusCode) {
+                directApiResult = "✅ Terhubung (\(ms) ms)"
+            } else {
+                directApiResult = "⚠️ Status \((resp as? HTTPURLResponse)?.statusCode ?? 0)"
+            }
+        } catch {
+            directApiResult = "❌ Gagal (\(error.localizedDescription))"
+        }
+
+        // 2. YouTube Audio Bridge Web engine ping
+        do {
+            let start = CFAbsoluteTimeGetCurrent()
+            guard let url = URL(string: "https://www.youtube.com/iframe_api") else { return }
+            var req = URLRequest(url: url)
+            req.timeoutInterval = 8
+            let (_, resp) = try await URLSession.shared.data(for: req)
+            let ms = Int((CFAbsoluteTimeGetCurrent() - start) * 1000)
+            if let http = resp as? HTTPURLResponse, (200...299).contains(http.statusCode) {
+                youtubeBridgeResult = "✅ Siap (\(ms) ms)"
+            } else {
+                youtubeBridgeResult = "⚠️ Status \((resp as? HTTPURLResponse)?.statusCode ?? 0)"
+            }
+        } catch {
+            youtubeBridgeResult = "❌ Gagal (\(error.localizedDescription))"
+        }
+
+        // 3. Proxy API ping
+        let proxyBase = customProxyUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? "https://richmusic.vercel.app"
+            : customProxyUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        do {
+            let start = CFAbsoluteTimeGetCurrent()
+            let checkUrl = proxyBase.hasSuffix("/") ? "\(proxyBase)api/home" : "\(proxyBase)/api/home"
+            guard let url = URL(string: checkUrl) ?? URL(string: proxyBase) else { return }
+            var req = URLRequest(url: url)
+            req.timeoutInterval = 10
+            let (_, resp) = try await URLSession.shared.data(for: req)
+            let ms = Int((CFAbsoluteTimeGetCurrent() - start) * 1000)
+            if let http = resp as? HTTPURLResponse, (200...299).contains(http.statusCode) {
+                proxyApiResult = "✅ Terhubung (\(ms) ms)"
+            } else {
+                proxyApiResult = "⚠️ Status \((resp as? HTTPURLResponse)?.statusCode ?? 0)"
+            }
+        } catch {
+            proxyApiResult = "❌ Gagal (\(error.localizedDescription))"
+        }
+
+        isTestingConnection = false
     }
 }
 
