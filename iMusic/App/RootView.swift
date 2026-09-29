@@ -30,7 +30,7 @@ struct RootView: View {
             if player.current != nil, !showNowPlaying {
                 MiniPlayer { showNowPlaying = true }
                     .padding(.horizontal, 8)
-                    .padding(.bottom, 49)
+                    .padding(.bottom, 56)
             }
         }
         .overlay(alignment: .top) {

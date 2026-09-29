@@ -12,7 +12,8 @@ struct MiniPlayer: View {
             HStack(spacing: 12) {
                 ArtworkView(url: song.thumbnail, cornerRadius: 6)
                     .frame(width: 44, height: 44)
-                VStack(alignment: .leading, spacing: 1) {
+                    .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
+                VStack(alignment: .leading, spacing: 2) {
                     Text(song.title)
                         .font(.subheadline.weight(.semibold))
                         .lineLimit(1)
@@ -25,28 +26,34 @@ struct MiniPlayer: View {
                 Button { player.toggle() } label: {
                     Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
                         .font(.title3)
+                        .foregroundStyle(.primary)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(player.isPlaying ? "Jeda" : "Putar")
                 Button { player.next(auto: false) } label: {
                     Image(systemName: "forward.fill")
                         .font(.body)
+                        .foregroundStyle(.primary)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Berikutnya")
             }
-            .padding(.horizontal, 10)
+            .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .background {
                 if reduceTransparency {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
                         .fill(Color(.secondarySystemBackground))
                 } else {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
                         .fill(.ultraThinMaterial)
                 }
             }
-            .shadow(radius: 8, y: 2)
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(Color.white.opacity(0.08), lineWidth: 0.5)
+            )
+            .shadow(color: .black.opacity(0.12), radius: 10, y: 4)
             .contentShape(Rectangle())
             .onTapGesture(perform: onOpen)
             .accessibilityAction(named: "Buka pemutar") { onOpen() }

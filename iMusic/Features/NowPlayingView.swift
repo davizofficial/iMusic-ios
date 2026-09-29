@@ -1,3 +1,5 @@
+import AVKit
+import MediaPlayer
 import SwiftUI
 
 struct NowPlayingView: View {
@@ -24,7 +26,8 @@ struct NowPlayingView: View {
                 metadata
                 scrubber
                 controls
-                Spacer(minLength: 12)
+                volumeBar
+                bottomBar
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 16)
@@ -60,53 +63,51 @@ struct NowPlayingView: View {
     }
 
     private var topBar: some View {
-        HStack {
-            Button { dismiss() } label: {
-                Image(systemName: "chevron.down").font(.headline)
-            }
-            .accessibilityLabel("Tutup")
-            Spacer()
-            Text(showLyrics ? "Lirik" : "Sedang Diputar")
-                .font(.caption.weight(.semibold))
-                .textCase(.uppercase)
-                .foregroundStyle(.white.opacity(0.7))
-            Spacer()
-            Button { withAnimation(.easeInOut) { showLyrics.toggle() } } label: {
-                Image(systemName: showLyrics ? "music.note" : "quote.bubble")
-                    .font(.headline)
-            }
-            .accessibilityLabel(showLyrics ? "Tampilkan sampul" : "Tampilkan lirik")
-            Button { showQueue = true } label: {
-                Image(systemName: "list.bullet").font(.headline)
-            }
-            .accessibilityLabel("Antrean")
-            Menu {
-                Picker("Kecepatan", selection: Binding(
-                    get: { player.speed },
-                    set: { player.setSpeed($0) }
-                )) {
-                    ForEach([Float(0.5), 0.75, 1, 1.25, 1.5, 2], id: \.self) { v in
-                        Text(v == 1 ? "Normal" : "\(v, specifier: "%g")×").tag(v)
+        VStack(spacing: 8) {
+            Capsule()
+                .fill(Color.white.opacity(0.3))
+                .frame(width: 36, height: 5)
+                .padding(.top, 4)
+
+            HStack {
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.down")
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(.white.opacity(0.8))
+                }
+                .accessibilityLabel("Tutup")
+
+                Spacer()
+
+                Menu {
+                    Picker("Kecepatan", selection: Binding(
+                        get: { player.speed },
+                        set: { player.setSpeed($0) }
+                    )) {
+                        ForEach([Float(0.5), 0.75, 1, 1.25, 1.5, 2], id: \.self) { v in
+                            Text(v == 1 ? "Normal" : "\(v, specifier: "%g")×").tag(v)
+                        }
                     }
+                    Picker("Timer Tidur", selection: Binding(
+                        get: { player.sleepMinutes },
+                        set: { player.setSleepTimer(minutes: $0) }
+                    )) {
+                        Text("Nonaktif").tag(0)
+                        Text("5 menit").tag(5)
+                        Text("15 menit").tag(15)
+                        Text("30 menit").tag(30)
+                        Text("60 menit").tag(60)
+                    }
+                    Button { showRelated = true } label: { Label("Terkait", systemImage: "sparkles") }
+                } label: {
+                    Image(systemName: "ellipsis.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(.white.opacity(0.8))
                 }
-                Picker("Timer Tidur", selection: Binding(
-                    get: { player.sleepMinutes },
-                    set: { player.setSleepTimer(minutes: $0) }
-                )) {
-                    Text("Nonaktif").tag(0)
-                    Text("5 menit").tag(5)
-                    Text("15 menit").tag(15)
-                    Text("30 menit").tag(30)
-                    Text("60 menit").tag(60)
-                }
-                Button { showRelated = true } label: { Label("Terkait", systemImage: "sparkles") }
-            } label: {
-                Image(systemName: "ellipsis").font(.headline)
+                .accessibilityLabel("Opsi lainnya")
             }
-            .accessibilityLabel("Opsi lainnya")
         }
-        .foregroundStyle(.white)
-        .padding(.top, 8)
+        .padding(.top, 4)
     }
 
     private var artwork: some View {
@@ -181,22 +182,35 @@ struct NowPlayingView: View {
     }
 
     private var metadata: some View {
-        VStack(spacing: 4) {
-            Text(player.current?.title ?? "—")
-                .font(.title3.bold())
-                .foregroundStyle(.white)
-                .lineLimit(2)
-                .multilineTextAlignment(.center)
-            Text(player.current?.artist ?? "")
-                .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.7))
-                .lineLimit(1)
+        HStack(alignment: .center) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(player.current?.title ?? "—")
+                    .font(.title3.bold())
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                Text(player.current?.artist ?? "")
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.7))
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 12)
+            if let song = player.current {
+                Button {
+                    library.toggleFavorite(song)
+                } label: {
+                    Image(systemName: library.isFavorite(song.videoId) ? "heart.fill" : "heart")
+                        .font(.title3)
+                        .foregroundStyle(library.isFavorite(song.videoId) ? Theme.accent : .white.opacity(0.7))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(library.isFavorite(song.videoId) ? "Hapus dari Favorit" : "Tambah ke Favorit")
+            }
         }
         .padding(.top, 8)
     }
 
     private var scrubber: some View {
-        VStack(spacing: 2) {
+        VStack(spacing: 4) {
             Slider(value: sliderBinding, in: 0...max(player.duration, 1)) { editing in
                 if !editing {
                     player.seek(dragValue)
@@ -206,15 +220,17 @@ struct NowPlayingView: View {
             .tint(.white)
             .accessibilityLabel("Posisi")
             .accessibilityValue("\(Fmt.time(player.currentTime)) dari \(Fmt.time(player.duration))")
+
             HStack {
                 Text(Fmt.time(isDragging ? dragValue : player.currentTime))
                 Spacer()
-                Text(Fmt.time(player.duration))
+                let remaining = max(0, player.duration - (isDragging ? dragValue : player.currentTime))
+                Text(remaining > 0 ? "-\(Fmt.time(remaining))" : Fmt.time(player.duration))
             }
             .font(.caption2.monospacedDigit())
             .foregroundStyle(.white.opacity(0.6))
         }
-        .padding(.top, 12)
+        .padding(.top, 8)
     }
 
     private var sliderBinding: Binding<Double> {
@@ -236,33 +252,117 @@ struct NowPlayingView: View {
         HStack(spacing: 36) {
             Button { player.toggleShuffle() } label: {
                 Image(systemName: "shuffle")
-                    .foregroundStyle(player.shuffle ? Theme.accent : .white)
+                    .font(.title3)
+                    .foregroundStyle(player.shuffle ? Theme.accent : .white.opacity(0.7))
             }
             .accessibilityLabel("Acak")
             .accessibilityValue(player.shuffle ? "Aktif" : "Nonaktif")
+
             Button { player.previous() } label: {
-                Image(systemName: "backward.fill").font(.title2)
+                Image(systemName: "backward.fill").font(.title)
             }
             .accessibilityLabel("Sebelumnya")
+
             Button { player.toggle() } label: {
-                Image(systemName: player.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                    .font(.system(size: playButtonSize))
+                Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: 34))
+                    .frame(width: playButtonSize, height: playButtonSize)
+                    .background(Color.white.opacity(0.12))
+                    .clipShape(Circle())
             }
             .accessibilityLabel(player.isPlaying ? "Jeda" : "Putar")
+
             Button { player.next(auto: false) } label: {
-                Image(systemName: "forward.fill").font(.title2)
+                Image(systemName: "forward.fill").font(.title)
             }
             .accessibilityLabel("Berikutnya")
+
             Button { player.cycleRepeat() } label: {
                 Image(systemName: player.repeatMode == .one ? "repeat.1" : "repeat")
-                    .foregroundStyle(player.repeatMode == .off ? .white : Theme.accent)
+                    .font(.title3)
+                    .foregroundStyle(player.repeatMode == .off ? .white.opacity(0.7) : Theme.accent)
             }
             .accessibilityLabel("Ulangi")
             .accessibilityValue(repeatLabel)
         }
         .foregroundStyle(.white)
-        .padding(.top, 18)
+        .padding(.top, 14)
     }
+
+    private var volumeBar: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "speaker.fill")
+                .font(.caption)
+                .foregroundStyle(.white.opacity(0.5))
+            SystemVolumeSlider()
+                .frame(height: 20)
+            Image(systemName: "speaker.wave.3.fill")
+                .font(.caption)
+                .foregroundStyle(.white.opacity(0.5))
+        }
+        .padding(.horizontal, 4)
+        .padding(.top, 16)
+    }
+
+    private var bottomBar: some View {
+        HStack {
+            Button {
+                withAnimation(.easeInOut) { showLyrics.toggle() }
+            } label: {
+                Image(systemName: showLyrics ? "quote.bubble.fill" : "quote.bubble")
+                    .font(.title3)
+                    .foregroundStyle(showLyrics ? Theme.accent : .white.opacity(0.7))
+                    .padding(8)
+                    .background(showLyrics ? Color.white.opacity(0.15) : Color.clear)
+                    .clipShape(Circle())
+            }
+            .accessibilityLabel(showLyrics ? "Sembunyikan lirik" : "Tampilkan lirik")
+
+            Spacer()
+
+            AirPlayButton()
+                .frame(width: 32, height: 32)
+                .accessibilityLabel("AirPlay")
+
+            Spacer()
+
+            Button {
+                showQueue = true
+            } label: {
+                Image(systemName: "list.bullet")
+                    .font(.title3)
+                    .foregroundStyle(.white.opacity(0.7))
+                    .padding(8)
+            }
+            .accessibilityLabel("Antrean")
+        }
+        .padding(.horizontal, 8)
+        .padding(.top, 12)
+    }
+}
+
+// MARK: - Native iOS AirPlay and Volume Components
+
+struct AirPlayButton: UIViewRepresentable {
+    func makeUIView(context: Context) -> AVRoutePickerView {
+        let picker = AVRoutePickerView()
+        picker.tintColor = .white
+        picker.activeTintColor = UIColor(Theme.accent)
+        picker.prioritizesVideoDevices = false
+        return picker
+    }
+
+    func updateUIView(_ uiView: AVRoutePickerView, context: Context) {}
+}
+
+struct SystemVolumeSlider: UIViewRepresentable {
+    func makeUIView(context: Context) -> MPVolumeView {
+        let view = MPVolumeView(frame: .zero)
+        view.showsRouteButton = false
+        return view
+    }
+
+    func updateUIView(_ uiView: MPVolumeView, context: Context) {}
 }
 
 struct QueueSheet: View {
