@@ -30,23 +30,30 @@ final class PlayerEngine {
             forInterval: CMTime(seconds: 0.4, preferredTimescale: 600),
             queue: .main
         ) { [weak self] time in
-            guard let self, self.mode == .local else { return }
             let current = time.seconds.isFinite ? time.seconds : 0
-            let itemDuration = self.player.currentItem?.duration.seconds ?? 0
-            let duration = (itemDuration.isFinite && itemDuration > 0) ? itemDuration : 0
-            self.onTick?(current, duration)
+            Task { @MainActor [weak self] in
+                guard let self, self.mode == .local else { return }
+                let itemDuration = self.player.currentItem?.duration.seconds ?? 0
+                let duration = (itemDuration.isFinite && itemDuration > 0) ? itemDuration : 0
+                self.onTick?(current, duration)
+            }
         }
         endObserver = NotificationCenter.default.addObserver(
             forName: .AVPlayerItemDidPlayToEndTime,
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            guard let self, self.mode == .local else { return }
-            self.onEnded?()
+            Task { @MainActor [weak self] in
+                guard let self, self.mode == .local else { return }
+                self.onEnded?()
+            }
         }
         rateObservation = player.observe(\.timeControlStatus, options: [.new]) { [weak self] player, _ in
-            guard let self, self.mode == .local else { return }
-            self.onPlayingChanged?(player.timeControlStatus == .playing)
+            let isPlaying = player.timeControlStatus == .playing
+            Task { @MainActor [weak self] in
+                guard let self, self.mode == .local else { return }
+                self.onPlayingChanged?(isPlaying)
+            }
         }
 
         // Connect YouTube Bridge callbacks

@@ -9,6 +9,7 @@ struct RootView: View {
     @State private var selection = 0
     @State private var showNowPlaying = false
 
+    var body: some View {
         ZStack {
             TabView(selection: $selection) {
                 HomeView()
