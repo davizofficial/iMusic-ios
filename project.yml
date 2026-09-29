@@ -23,7 +23,6 @@ targets:
       - path: iMusic
         excludes:
           - "Resources/Info.plist"
-          - "Resources/iMusic.entitlements"
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.imusic.ios
@@ -32,7 +31,6 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CODE_SIGN_STYLE: Automatic
         GENERATE_INFOPLIST_FILE: YES
-        CODE_SIGN_ENTITLEMENTS: iMusic/Resources/iMusic.entitlements
     info:
       path: iMusic/Resources/Info.plist
       properties:
@@ -46,6 +44,9 @@ targets:
         LSRequiresIPhoneOS: true
         UIBackgroundModes: [audio]
         UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations: {}
         ITSAppUsesNonExemptEncryption: false
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true

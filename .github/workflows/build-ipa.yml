@@ -57,24 +57,18 @@ jobs:
           mkdir -p Payload
           cp -R build/Build/Products/Release-iphoneos/iMusic.app Payload/
           
-          # 1. Truly unsigned IPA (without any _CodeSignature) for AltStore/SideStore/Sideloadly
-          rm -rf Payload/iMusic.app/_CodeSignature
-          zip -qry iMusic-unsigned.ipa Payload
+          # Clean ad-hoc code signature without conflicting entitlements.
+          # This allows TrollStore to apply its valid fallback entitlements on install,
+          # and enables AltStore / SideStore / Sideloadly to re-sign cleanly without conflicts.
+          codesign --force --deep --sign - Payload/iMusic.app
           
-          # 2. Properly signed with application-identifier entitlements for TrollStore & ad-hoc runtimes
-          codesign --force --deep --sign - --entitlements iMusic/Resources/iMusic.entitlements Payload/iMusic.app
+          # Package ONLY 1 single iMusic.ipa
           zip -qry iMusic.ipa Payload
-          
-          # 3. TrollStore .tipa package
-          cp iMusic.ipa iMusic.tipa
           rm -rf Payload
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: iMusic-ipa
-          path: |
-            iMusic.ipa
-            iMusic.tipa
-            iMusic-unsigned.ipa
+          path: iMusic.ipa
           if-no-files-found: error
