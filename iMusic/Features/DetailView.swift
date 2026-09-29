@@ -70,7 +70,7 @@ struct DetailView: View {
                     .foregroundStyle(.secondary)
                     .textCase(.uppercase)
                 Text(header.title)
-                    .font(.title2.bold())
+                    .font(.title2.weight(.bold))
                     .lineLimit(3)
                 if let sub = header.subtitle ?? header.strapline, !sub.isEmpty {
                     Text(sub)

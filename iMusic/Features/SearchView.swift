@@ -12,7 +12,7 @@ struct SearchView: View {
     private let filters = ["all", "songs", "videos", "albums", "artists", "playlists"]
 
     var body: some View {
-        NavigationStack {
+        NavigationView {
             Group {
                 switch state {
                 case .loading:
@@ -45,6 +45,7 @@ struct SearchView: View {
                 }
             }
         }
+        .navigationViewStyle(.stack)
     }
 
     private var idleContent: some View {
@@ -52,7 +53,7 @@ struct SearchView: View {
             VStack(alignment: .leading, spacing: 24) {
                 if !library.history.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Baru Diputar").font(.title3.bold()).padding(.horizontal, Theme.screenPadding)
+                        Text("Baru Diputar").font(.title3.weight(.bold)).padding(.horizontal, Theme.screenPadding)
                         ForEach(Array(library.history.prefix(6).enumerated()), id: \.offset) { idx, song in
                             SongRow(item: song.mediaItem, number: idx + 1, queue: library.history.map(\.mediaItem))
                         }

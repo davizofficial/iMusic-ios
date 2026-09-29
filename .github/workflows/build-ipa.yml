@@ -51,6 +51,10 @@ jobs:
           fi
           echo "Mach-O binary info:"
           file "$APP_PATH/$EXEC"
+          echo "MinimumOSVersion in Info.plist:"
+          plutil -extract MinimumOSVersion raw "$APP_PATH/Info.plist" || true
+          echo "LC_BUILD_VERSION in Mach-O binary:"
+          otool -l "$APP_PATH/$EXEC" | grep -A 4 LC_BUILD_VERSION || true
 
       - name: Package IPA
         run: |

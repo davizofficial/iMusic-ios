@@ -38,9 +38,15 @@ struct RootView: View {
                 Label("Tidak ada koneksi internet", systemImage: "wifi.slash")
                     .font(.footnote.weight(.semibold))
                     .padding(.horizontal, 14)
-                    .padding(.vertical, 7)
-                    .background(reduceTransparency ? AnyShapeStyle(Color(.secondarySystemBackground))
-                                                   : AnyShapeStyle(.ultraThinMaterial))
+                    .background(
+                        Group {
+                            if reduceTransparency {
+                                Color(.secondarySystemBackground)
+                            } else {
+                                Color.clear.background(.ultraThinMaterial)
+                            }
+                        }
+                    )
                     .clipShape(Capsule())
                     .padding(.top, 6)
                     .transition(.move(edge: .top).combined(with: .opacity))

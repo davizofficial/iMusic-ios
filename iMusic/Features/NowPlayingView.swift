@@ -185,7 +185,7 @@ struct NowPlayingView: View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(player.current?.title ?? "—")
-                    .font(.title3.bold())
+                    .font(.title3.weight(.bold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
                 Text(player.current?.artist ?? "")
@@ -374,7 +374,7 @@ struct QueueSheet: View {
     private var upcoming: [Song] { player.upcoming }
 
     var body: some View {
-        NavigationStack {
+        NavigationView {
             List {
                 if let current = player.current {
                     Section("Sedang Diputar") {
@@ -413,6 +413,7 @@ struct QueueSheet: View {
                 }
             }
         }
+        .navigationViewStyle(.stack)
     }
 
     private func row(_ song: Song, current: Bool = false) -> some View {
@@ -435,7 +436,7 @@ struct RelatedSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
+        NavigationView {
             Group {
                 if player.relatedSections.isEmpty {
                     EmptyStateView(title: "Belum ada rekomendasi",
@@ -461,5 +462,6 @@ struct RelatedSheet: View {
             }
             .task { await player.loadRelated() }
         }
+        .navigationViewStyle(.stack)
     }
 }

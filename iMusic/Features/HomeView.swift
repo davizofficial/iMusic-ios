@@ -7,7 +7,7 @@ struct HomeView: View {
     @State private var state: LoadState = .loading
 
     var body: some View {
-        NavigationStack {
+        NavigationView {
             Group {
                 switch state {
                 case .loading:
@@ -20,6 +20,7 @@ struct HomeView: View {
             }
             .navigationTitle("Home")
         }
+        .navigationViewStyle(.stack)
         .task { if sections.isEmpty { await load() } }
     }
 
@@ -39,7 +40,7 @@ struct HomeView: View {
     private var recentlyPlayed: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Baru Diputar")
-                .font(.title3.bold())
+                .font(.title3.weight(.bold))
                 .padding(.horizontal, Theme.screenPadding)
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
                 ForEach(Array(library.history.prefix(6).enumerated()), id: \.offset) { _, song in

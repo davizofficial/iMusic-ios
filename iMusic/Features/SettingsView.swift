@@ -174,12 +174,12 @@ struct ImportLinkSheet: View {
     @State private var artistId: String?
 
     var body: some View {
-        NavigationStack {
+        NavigationView {
             Form {
                 Section {
                     TextField("https://music.youtube.com/…", text: $url)
                         .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
+                        .disableAutocorrection(true)
                         .keyboardType(.URL)
                 }
                 Section {
@@ -202,13 +202,22 @@ struct ImportLinkSheet: View {
                     Button("Tutup") { dismiss() }
                 }
             }
-            .navigationDestination(isPresented: Binding(
-                get: { artistId != nil },
-                set: { if !$0 { artistId = nil } }
-            )) {
-                if let artistId { DetailView(browseId: artistId, kind: "artist") }
-            }
+            .background(
+                NavigationLink(
+                    destination: Group {
+                        if let artistId { DetailView(browseId: artistId, kind: "artist") }
+                    },
+                    isActive: Binding(
+                        get: { artistId != nil },
+                        set: { if !$0 { artistId = nil } }
+                    )
+                ) {
+                    EmptyView()
+                }
+                .hidden()
+            )
         }
+        .navigationViewStyle(.stack)
     }
 
     private func run() async {

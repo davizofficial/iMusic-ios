@@ -8,7 +8,7 @@ struct BrowseView: View {
     private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
     var body: some View {
-        NavigationStack {
+        NavigationView {
             Group {
                 switch state {
                 case .loading:
@@ -21,6 +21,7 @@ struct BrowseView: View {
             }
             .navigationTitle("Jelajahi")
         }
+        .navigationViewStyle(.stack)
         .task { if moods.isEmpty { await load() } }
     }
 
@@ -29,7 +30,7 @@ struct BrowseView: View {
             VStack(alignment: .leading, spacing: 26) {
                 if !moods.isEmpty {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Mood & Genre").font(.title3.bold()).padding(.horizontal, Theme.screenPadding)
+                        Text("Mood & Genre").font(.title3.weight(.bold)).padding(.horizontal, Theme.screenPadding)
                         LazyVGrid(columns: columns, spacing: 12) {
                             ForEach(moods) { MoodCard(mood: $0) }
                         }

@@ -11,7 +11,7 @@ struct LibraryView: View {
     private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
     var body: some View {
-        NavigationStack {
+        NavigationView {
             VStack(spacing: 0) {
                 Picker("", selection: $tab) {
                     ForEach(Array(tabs.enumerated()), id: \.offset) { idx, name in
@@ -64,6 +64,7 @@ struct LibraryView: View {
                 Button("Batal", role: .cancel) {}
             }
         }
+        .navigationViewStyle(.stack)
     }
 
     // MARK: Tabs
@@ -164,7 +165,7 @@ struct LibraryView: View {
 
     private func statCard(_ value: String, _ label: String) -> some View {
         VStack(spacing: 4) {
-            Text(value).font(.title2.bold()).foregroundStyle(Theme.accent)
+            Text(value).font(.title2.weight(.bold)).foregroundStyle(Theme.accent)
             Text(LocalizedStringKey(label)).font(.caption).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)

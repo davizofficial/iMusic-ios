@@ -13,7 +13,7 @@ struct RadioView: View {
     private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
     var body: some View {
-        NavigationStack {
+        NavigationView {
             Group {
                 switch state {
                 case .loading:
@@ -26,6 +26,7 @@ struct RadioView: View {
             }
             .navigationTitle("Radio")
         }
+        .navigationViewStyle(.stack)
         .task { if moods.isEmpty { await load() } }
     }
 
@@ -46,7 +47,7 @@ struct RadioView: View {
     private var startFromSong: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Mulai Radio")
-                .font(.title3.bold())
+                .font(.title3.weight(.bold))
                 .padding(.horizontal, Theme.screenPadding)
             VStack(spacing: 0) {
                 ForEach(Array(library.history.prefix(5).enumerated()), id: \.offset) { _, song in
@@ -83,7 +84,7 @@ struct RadioView: View {
     private var moodStations: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Stasiun Mood")
-                .font(.title3.bold())
+                .font(.title3.weight(.bold))
                 .padding(.horizontal, Theme.screenPadding)
             LazyVGrid(columns: columns, spacing: 12) {
                 ForEach(moods) { MoodCard(mood: $0) }

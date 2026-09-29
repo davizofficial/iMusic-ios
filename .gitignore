@@ -2,4 +2,5 @@ iMusic.xcodeproj/
 build/
 DerivedData/
 *.ipa
+*.ips
 .DS_Store

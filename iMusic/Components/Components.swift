@@ -8,6 +8,26 @@ enum Theme {
     static let cardWidth: CGFloat = 150
 }
 
+enum ShareUtility {
+    static func share(items: [Any]) {
+        guard let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene ?? UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let rootVC = scene.windows.first(where: { $0.isKeyWindow })?.rootViewController else {
+            return
+        }
+        var topVC = rootVC
+        while let presented = topVC.presentedViewController {
+            topVC = presented
+        }
+        let activityVC = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        if let popover = activityVC.popoverPresentationController {
+            popover.sourceView = topVC.view
+            popover.sourceRect = CGRect(x: topVC.view.bounds.midX, y: topVC.view.bounds.midY, width: 0, height: 0)
+            popover.permittedArrowDirections = []
+        }
+        topVC.present(activityVC, animated: true)
+    }
+}
+
 // MARK: - Artwork
 
 struct ArtworkView: View {
@@ -126,7 +146,11 @@ struct SongRow: View {
         }
         if let videoId = item.videoId,
            let shareURL = URL(string: "https://music.youtube.com/watch?v=\(videoId)") {
-            ShareLink(item: shareURL) { Label("Bagikan", systemImage: "square.and.arrow.up") }
+            Button {
+                ShareUtility.share(items: [shareURL])
+            } label: {
+                Label("Bagikan", systemImage: "square.and.arrow.up")
+            }
         }
         if let artist = item.artists?.first, let browseId = artist.browseId {
             NavigationLink(destination: DetailView(browseId: browseId, kind: "artist")) {
@@ -155,7 +179,7 @@ struct AddToPlaylistSheet: View {
     @State private var newName = ""
 
     var body: some View {
-        NavigationStack {
+        NavigationView {
             List {
                 Section {
                     HStack(spacing: 12) {
@@ -205,6 +229,7 @@ struct AddToPlaylistSheet: View {
                 }
             }
         }
+        .navigationViewStyle(.stack)
     }
 }
 
@@ -256,7 +281,7 @@ struct ShelfView: View {
         VStack(alignment: .leading, spacing: 10) {
             if !section.title.isEmpty {
                 Text(section.title)
-                    .font(.title3.bold())
+                    .font(.title3.weight(.bold))
                     .padding(.horizontal, Theme.screenPadding)
             }
             if section.list == true {
